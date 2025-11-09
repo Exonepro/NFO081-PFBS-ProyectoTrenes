@@ -1,3 +1,6 @@
 [submodule "ppdc-timed-generator"]
 	path = ppdc-timed-generator
 	url = https://github.com/Santasy/INFO81-S2-G1-DesCom01.git
+[submodule "ppdc-event-manager"]
+	path = ppdc-event-manager
+	url = https://github.com/Santasy/INFO081-S2-DesCom02.git
