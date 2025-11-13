@@ -49,4 +49,8 @@ cabe destacar que el operario debe tener Python instalado en el sistema.
 Para ejecutar el proyecto, todos los archivos que contengan:
 if __name__ == "__main__":
 
-se deben ejecutar.
+
+# link de nuestro repositorio
+
+
+https://github.com/Exonepro/NFO081-PFBS-ProyectoTrenes.git
