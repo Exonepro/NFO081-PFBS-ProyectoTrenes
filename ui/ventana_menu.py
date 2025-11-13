@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox as msgbox
-
+from ui.ventana_simulacion import ventana_simu
 
 def iniciar_menu():
     root = tk.Tk()
@@ -17,9 +17,13 @@ def iniciar_menu():
         if msgbox.askyesno("Salir", "¿Desea salir del programa?"):
             root.destroy()
     
-    cargar_estado = tk.Button(root, text=" Cargar ", bg= "#4D4F4D",pady= 10,padx=20, fg= "#FFFFFF").pack(side = tk.TOP)
+    cargar_estado = tk.Button(
+       root, text="Crea ventana", command=lambda: ventana_simu()).pack(side = tk.TOP)
 
     chao = tk.Button(root, text="salir", command=terminar_prog,pady = 10, padx= 40, bg="#FF0000").pack(side=tk.TOP,expand=0.1 )
     
 
     root.mainloop()
+
+
+
