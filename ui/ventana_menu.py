@@ -16,6 +16,10 @@ def iniciar_menu():
     def terminar_prog():
         if msgbox.askyesno("Salir", "¿Desea salir del programa?"):
             root.destroy()
-    chao = tk.Button(root, text="terminar", command=terminar_prog,pady = 10, padx= 40, bg="#FF0000").pack(side=tk.TOP,expand=1 )
+    
+    cargar_estado = tk.Button(root, text=" Cargar ", bg= "#4D4F4D",pady= 10,padx=20, fg= "#FFFFFF").pack(side = tk.TOP)
+
+    chao = tk.Button(root, text="salir", command=terminar_prog,pady = 10, padx= 40, bg="#FF0000").pack(side=tk.TOP,expand=0.1 )
+    
 
     root.mainloop()
