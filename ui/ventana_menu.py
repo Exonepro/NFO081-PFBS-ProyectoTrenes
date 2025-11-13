@@ -11,14 +11,14 @@ def iniciar_menu():
 
     titulo = tk.Label(root, text="SIMULACION FERROVIARIA", font=("Brich", 20),pady = 20, bg="#1e1e2e",fg="#ffffff")
     titulo.pack(side=tk.TOP,)
-    inicio = tk.Button(root, text="INICIAR SIMULACION", bg="#4D4F4D",pady = 10,fg= "#FFFFFF").pack(side=tk.TOP, expand=0.1)
+    inicio = tk.Button(root, text="Iniciar Simulacion", bg="#4D4F4D",pady = 10,fg= "#FFFFFF").pack(side=tk.TOP, expand=0.1)
     
     def terminar_prog():
         if msgbox.askyesno("Salir", "¿Desea salir del programa?"):
             root.destroy()
     
     cargar_estado = tk.Button(
-       root, text="Crea ventana", command=lambda: ventana_simu()).pack(side = tk.TOP)
+       root, text="Cargar",padx= 20,pady= 10,bg="#4D4F4D",fg = "#FFFFFF", command=lambda: ventana_simu()).pack(side = tk.TOP)
 
     chao = tk.Button(root, text="salir", command=terminar_prog,pady = 10, padx= 40, bg="#FF0000").pack(side=tk.TOP,expand=0.1 )
     
