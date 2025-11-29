@@ -1,6 +1,6 @@
 import datetime as dt
 
-from ppdc_event_manager import LineaDeEventos
+from ppdc_event_manager.linea_de_eventos import LineaDeEventos
 
 from dummy_classes import EstadoDeSimulacion
 
