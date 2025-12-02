@@ -132,7 +132,6 @@ def ventana_simu(sistema):
     btn_modificar.pack(side=tk.BOTTOM, fill=tk.X, padx=20, pady=5)
 
     def avanzar_turno():
-        """Llama a la lógica para avanzar y luego refresca la pantalla."""
         sistema.avanzar_un_paso()
         refrescar_pantalla()
 
