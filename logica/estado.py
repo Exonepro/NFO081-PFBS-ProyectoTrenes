@@ -87,7 +87,7 @@ class EstadoSimulacion:
 
        
         if hora_evento >= 20 or hora_evento < 7:
-            print(f"--- Saltando la noche (Evento detectado a las {siguiente_evento.ocurrencia}) ---")
+            print(f"--- Saltando la noche (Evento detectado a las {siguiente_evento.ocurrencia}) ---") # no se si sea necesario este
             
             
             if hora_evento >= 20:
@@ -113,7 +113,7 @@ class EstadoSimulacion:
             
             
             for est in self.estaciones:
-                est.anden.clear() # La gente se va a casa a dormir XD
+                est.anden.clear() # La gente se va a casa a dormir 
                 est.vias_ocupadas = 0 
 
             #Vaciar Trenes
@@ -177,7 +177,6 @@ class EstadoSimulacion:
         self.linea_tiempo.insertar_evento_futuro(ev_llegada)
 
     def handler_llegada_tren(self, tren):
-        """Maneja la llegada verificando si hay vías disponibles."""
         estacion_destino = tren.destino_actual
         
         

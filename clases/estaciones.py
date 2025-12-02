@@ -1,6 +1,8 @@
 from collections import deque
-from ppdc_timed_generator.generadores.generador_uniforme import GeneradorUniforme
+from ppdc_timed_generator.generadores.generador_uniforme import GeneradorUniforme # importado del profe
 import datetime as dt
+
+
 
 class Estacion:
     def __init__(self, id_estacion, nombre, poblacion, fecha_inicio):

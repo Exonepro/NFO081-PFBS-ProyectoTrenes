@@ -1,13 +1,14 @@
 import datetime as dt
 import random
 
-class Pasajero:
+
+class Pasajero: 
     def __init__(self, id_pasajero: int, fecha_creacion: dt.datetime):
         self.id = id_pasajero
         self.fecha_creacion = fecha_creacion
         self.origen = None
         self.destino = None
-        
+    # actualizadoo
     def decidir_viaje(self, estacion_actual, lista_todas_las_estaciones):
         self.origen = estacion_actual
         rnd = random.Random(self.id)

@@ -5,7 +5,7 @@ from logica.sistema_guardado import SistemaGuardado
 from tkinter import simpledialog 
 
 # se usa harto espaciado para no hacer que el codigo se vea tan junto
-
+# pax = pasajeros
 def ventana_simu(sistema):
     
     def handler_guardar():

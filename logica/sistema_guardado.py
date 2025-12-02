@@ -90,7 +90,7 @@ class SistemaGuardado:
             sistema.rutas.append(Ruta(st_talca, st_chi, 180))
             sistema.rutas.append(Ruta(st_chi, st_talca, 180))
 
-            print("Carga completa. Reiniciando eventos...")
+            print("Carga completa. Reiniciando eventos...") #prueba
             
             
             sistema.linea_tiempo.eventos = [] 

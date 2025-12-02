@@ -3,7 +3,6 @@ from tkinter import messagebox as msgbox
 from tkinter import filedialog
 from ui.ventana_simulacion import ventana_simu
 
-# Importamos la lógica y el sistema de guardado
 from logica.estado import EstadoSimulacion
 from logica.sistema_guardado import SistemaGuardado
 
@@ -47,8 +46,6 @@ def iniciar_menu():
             msgbox.showerror("Error", "No se pudo cargar el archivo. Verifique que sea un JSON válido.")
 
     
-    
-    
     btn_inicio = tk.Button(root, text="Iniciar Nueva Simulación", bg="#4D4F4D", pady=10, width=25, fg="#FFFFFF", 
                            font=("Arial", 12), command=abrir_simulacion_nueva)
     btn_inicio.pack(pady=10)
@@ -66,3 +63,4 @@ def iniciar_menu():
     btn_salir.pack(pady=20)
 
     root.mainloop()
+    #todo bien
