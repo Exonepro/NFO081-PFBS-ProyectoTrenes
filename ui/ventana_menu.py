@@ -54,7 +54,7 @@ def iniciar_menu():
     btn_inicio.pack(pady=10)
 
     # Botón Cargar (Ahora sí funciona)
-    btn_cargar = tk.Button(root, text="Cargar Partida Guardada", bg="#2196F3", pady=10, width=25, fg="#FFFFFF", 
+    btn_cargar = tk.Button(root, text="Cargar Estado", bg="#2196F3", pady=10, width=25, fg="#FFFFFF", 
                            font=("Arial", 12), command=handler_cargar_partida)
     btn_cargar.pack(pady=10)
 

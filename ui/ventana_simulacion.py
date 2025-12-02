@@ -2,6 +2,9 @@ import tkinter as tk
 from tkinter import messagebox as msgbox
 from tkinter import filedialog
 from logica.sistema_guardado import SistemaGuardado
+from tkinter import simpledialog # <--- AGREGAR AL INICIO CON LOS IMPORTS
+
+
 
 def ventana_simu(sistema):
     """
@@ -44,7 +47,7 @@ def ventana_simu(sistema):
     frame_kpi.pack(fill=tk.X, padx=20, pady=10)
 
     # Indicador 1: Total Transportados
-    lbl_kpi_transportados = tk.Label(frame_kpi, text="Pax Transportados: 0", 
+    lbl_kpi_transportados = tk.Label(frame_kpi, text="Pax (Pasajeros) Transportados: 0", 
                                      font=("Arial", 12, "bold"), bg="#001a4d", fg="#00E5FF")
     lbl_kpi_transportados.pack(side=tk.LEFT, padx=20, pady=10)
 
@@ -78,42 +81,71 @@ def ventana_simu(sistema):
         # A. Actualizar Reloj
         var_reloj.set(sistema.fecha_actual.strftime("%d/%m/%Y %H:%M"))
         
-        # B. Actualizar Indicadores (NUEVO)
-        # Calculamos cuánta gente hay esperando en TOTAL en todas las estaciones
+        # B. Actualizar Indicadores Globales
         total_esperando = sum(len(e.anden) for e in sistema.estaciones)
         
         lbl_kpi_transportados.config(text=f"Pax Transportados: {sistema.total_transportados}")
         lbl_kpi_esperando.config(text=f"Gente Esperando: {total_esperando}")
         
-        # C. Color de Alerta (Opcional visual choro)
-        # Si hay más de 500 personas esperando, poner el texto en ROJO
         if total_esperando > 500:
-            lbl_kpi_esperando.config(fg="#FF0000") # Rojo alerta
+            lbl_kpi_esperando.config(fg="#FF0000")
         else:
-            lbl_kpi_esperando.config(fg="#FFD700") # Amarillo normal
-        lista_estaciones.delete(0, tk.END) # Limpiar lista
+            lbl_kpi_esperando.config(fg="#FFD700")
+
+        # C. Lista de Estaciones (Con población visible para validar RF05)
+        lista_estaciones.delete(0, tk.END)
         for est in sistema.estaciones:
-            # Formato: [ID] Nombre ...... Pasajeros
-            texto = f"[{est.id}] {est.nombre:<30} | Esperando: {len(est.anden)} personas"
+            texto = f"[{est.id}] {est.nombre:<15} (Pob: {est.poblacion}) | Esperando: {len(est.anden)}"
             lista_estaciones.insert(tk.END, texto)
             
-        # C. Actualizar Lista de Trenes
+        # D. Lista de Trenes (CAMBIO SOLICITADO: Solo mostrar Capacidad Máxima)
         lista_trenes.delete(0, tk.END)
         for t in sistema.trenes:
-            estado_texto = ""
+            ubicacion_str = ""
             if t.en_transito:
-                # Si está viajando, mostramos hacia dónde va
-                nombre_destino = t.destino_actual.nombre if t.destino_actual else "Desconocido"
-                estado_texto = f"VIAJANDO -> Hacia {nombre_destino}"
+                destino_nm = t.destino_actual.nombre if t.destino_actual else "?"
+                ubicacion_str = f"Viajando a {destino_nm}"
             else:
-                # Si está quieto, mostramos dónde está
-                nombre_ubicacion = t.estacion_actual.nombre if t.estacion_actual else "Vía"
-                estado_texto = f"EN ESTACIÓN: {nombre_ubicacion}"
-                
-            # Formato: Nombre | Pasajeros/Capacidad | Estado
-            texto = f"{t.nombre:<20} | Pax: {len(t.pasajeros):>3}/{t.capacidad:<3} | {estado_texto}"
-            lista_trenes.insert(tk.END, texto)
-    
+                est_nm = t.estacion_actual.nombre if t.estacion_actual else "Vía"
+                ubicacion_str = f"En {est_nm}"
+
+            flujo_str = f"(Sub: {t.ultimo_subieron} | Baj: {t.ultimo_bajaron})"
+            
+            # --- AQUÍ ESTÁ EL CAMBIO ---
+            # Mostramos texto fijo de capacidad en lugar del contador dinámico
+            info_tren = f"{t.nombre:<10} [Capacidad Máxima: {t.capacidad}]"
+            
+            texto_final = f"{info_tren:<40} | {flujo_str:<25} | {ubicacion_str}"
+            
+            lista_trenes.insert(tk.END, texto_final)
+    def handler_modificar_estacion():
+        """RF05: Modificar generación de demanda en tiempo real."""
+        # 1. Obtener cuál está seleccionada en la lista visual
+        seleccion = lista_estaciones.curselection()
+        if not seleccion:
+            msgbox.showwarning("Atención", "Seleccione una estación de la lista primero.")
+            return
+        
+        indice = seleccion[0]
+        estacion_obj = sistema.estaciones[indice]
+        
+        # 2. Pedir nuevo dato
+        nuevo_valor = simpledialog.askinteger(
+            "Modificar Generación", 
+            f"Población actual de {estacion_obj.nombre}: {estacion_obj.poblacion}\n\nIngrese nueva población (0 para detener):",
+            minvalue=0, maxvalue=20000000
+        )
+        
+        if nuevo_valor is not None:
+            estacion_obj.modificar_poblacion(nuevo_valor)
+            refrescar_pantalla()
+            msgbox.showinfo("Éxito", f"Se actualizó la población de {estacion_obj.nombre} a {nuevo_valor}.")
+
+    # CREAR EL BOTÓN EN LA INTERFAZ
+    btn_modificar = tk.Button(ventana, text="Modificar Demanda Estación", 
+                              font=("Arial", 10), bg="#FF9800", fg="black",
+                              command=handler_modificar_estacion)
+    btn_modificar.pack(side=tk.BOTTOM, fill=tk.X, padx=20, pady=5)
 
     def avanzar_turno():
         """Llama a la lógica para avanzar y luego refresca la pantalla."""
@@ -125,10 +157,10 @@ def ventana_simu(sistema):
                               font=("Arial", 14, "bold"), bg="#4CAF50", fg="white",
                               command=avanzar_turno, pady=10)
     btn_continuar.pack(side=tk.BOTTOM, fill=tk.X, padx=20, pady=20)
-    btn_guardar = tk.Button(ventana, text="Guardar Partida", 
+    btn_guardar = tk.Button(ventana, text="Guardar Estado", 
                             font=("Arial", 12), bg="#2196F3", fg="white",
                             command=handler_guardar)
-    btn_guardar.pack(side=tk.BOTTOM, fill=tk.X, padx=20, pady=5)
+    btn_guardar.pack(side=tk.BOTTOM, fill=tk.X, padx=20, pady=1)
 
-    # Carga inicial de datos al abrir la ventana
+    # Carga inicial de datos al abrir la ventanaa
     refrescar_pantalla()

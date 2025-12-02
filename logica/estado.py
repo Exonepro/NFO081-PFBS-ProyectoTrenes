@@ -78,57 +78,147 @@ class EstadoSimulacion:
 
     # --- LÓGICA DE MOVIMIENTO DE TRENES ---
 
-    def programar_salida_tren(self, tren, minutos_espera):
-        """Busca adónde ir y agenda la llegada."""
-        estacion_actual = tren.estacion_actual
-        if not estacion_actual:
+# ... dentro de logica/estado.py ...
+
+    def avanzar_un_paso(self):
+        """
+        Avanza la simulación. Si el siguiente evento ocurre de noche (20:00 - 06:59),
+        salta automáticamente al día siguiente a las 07:00 hrs y REINICIA CONTADORES.
+        """
+        # 1. Obtener qué viene
+        proximos = self.linea_tiempo.obtener_proximos(eliminar=False)
+        if not proximos:
             return
 
-        # Lógica tonta: Ir a la primera estación conectada que no sea de donde vengo (ping-pong simple)
-        # Buscamos rutas que salgan de aquí
+        siguiente_evento = proximos[0]
+        hora_evento = siguiente_evento.ocurrencia.hour
+
+        # --- LÓGICA DE CORTE NOCTURNO (20:00 a 07:00) ---
+        if hora_evento >= 20 or hora_evento < 7:
+            print(f"--- Saltando la noche (Evento detectado a las {siguiente_evento.ocurrencia}) ---")
+            
+            # Calculamos las 07:00 AM
+            if hora_evento >= 20:
+                mañana = siguiente_evento.ocurrencia + dt.timedelta(days=1)
+                amanecer = mañana.replace(hour=7, minute=0, second=0, microsecond=0)
+            else:
+                amanecer = siguiente_evento.ocurrencia.replace(hour=7, minute=0, second=0, microsecond=0)
+
+            # Forzamos el reloj
+            self.fecha_actual = amanecer
+            
+            # Consumimos eventos nocturnos "en silencio"
+            while True:
+                evs = self.linea_tiempo.obtener_proximos(eliminar=False)
+                if not evs: break
+                if evs[0].ocurrencia > amanecer: break 
+                
+                lista = self.linea_tiempo.obtener_proximos(eliminar=True)
+                self.linea_tiempo.consumir_eventos(lista, historial=True)
+            
+            self.linea_tiempo.fecha_actual = amanecer
+            
+            # =================================================================
+            # --- CORRECCIÓN: LIMPIEZA NOCTURNA (Soluciona tus 2 problemas) ---
+            # =================================================================
+            print("--- MANTENIMIENTO NOCTURNO: Vaciando estaciones y trenes ---")
+            
+            # 1. Vaciar gente esperando en Estaciones
+            for est in self.estaciones:
+                est.anden.clear() # La gente se va a casa a dormir
+                # Opcional: Resetear vías ocupadas si quieres que amanezca 100% libre
+                est.vias_ocupadas = 0 
+
+            # 2. Vaciar Trenes (Resetear Pax y Contadores)
+            for t in self.trenes:
+                t.pasajeros.clear()      # Bajamos a todos los pasajeros (fin del servicio)
+                t.ultimo_subieron = 0    # Reiniciar contador visual
+                t.ultimo_bajaron = 0     # Reiniciar contador visual
+                
+                # Truco para que no queden "Viajando" eternamente:
+                # Si estaba en tránsito, al día siguiente aparecerá llegando a su destino
+                # pero vacío. La lógica actual lo maneja bien.
+            
+            print(f"--- Nuevo Día: {self.fecha_actual} (Sistema Reiniciado) ---")
+            
+        else:
+            # --- LÓGICA DIURNA NORMAL ---
+            lista = self.linea_tiempo.obtener_proximos(eliminar=True)
+            nueva_fecha = self.linea_tiempo.consumir_eventos(lista, historial=True)
+            if nueva_fecha:
+                self.fecha_actual = nueva_fecha
+
+    def programar_salida_tren(self, tren, minutos_espera):
+        estacion_actual = tren.estacion_actual
+        if not estacion_actual: return
+
+        estacion_actual.liberar_via()
+
+        # Buscamos todas las rutas que salen de aquí
         rutas_posibles = [r for r in self.rutas if r.origen.id == estacion_actual.id]
         
-        if not rutas_posibles:
-            print(f"El tren {tren.id} está atrapado en {estacion_actual.nombre}")
-            return
+        if not rutas_posibles: return
             
-        # Elegimos la primera ruta disponible (puedes mejorar esto después para que sea aleatorio)
-        ruta_elegida = rutas_posibles[0]
+        # --- INTELIGENCIA DE RUTA ---
+        ruta_elegida = None
         
-        # 1. Subir pasajeros
-        subidos = tren.subir_pasajeros_desde(estacion_actual)
-        print(f"[{self.fecha_actual.strftime('%H:%M')}] {tren.nombre} sale de {estacion_actual.nombre} con {len(tren.pasajeros)} pax. Destino: {ruta_elegida.destino.nombre}")
+        # Si hay más de una opción (ej: estoy en Rancagua, puedo ir a Stgo o Talca)
+        # intento NO volver a la estación de donde acabo de llegar.
+        if len(rutas_posibles) > 1 and tren.ultima_estacion:
+            opciones_avanzar = [r for r in rutas_posibles if r.destino.id != tren.ultima_estacion.id]
+            if opciones_avanzar:
+                ruta_elegida = opciones_avanzar[0] # Seguimos avanzando
+            else:
+                ruta_elegida = rutas_posibles[0] # No queda otra que volver
+        else:
+            # Si es terminal o primera vez, tomamos la única que hay
+            ruta_elegida = rutas_posibles[0]
+
+        # Subir pasajeros
+        tren.subir_pasajeros_desde(estacion_actual)
         
-        # 2. Calcular tiempo de viaje: T = D / V * 60
         horas_viaje = ruta_elegida.distancia / tren.velocidad
         minutos_viaje = int(horas_viaje * 60)
         
-        # 3. Marcar tren en tránsito
         tren.iniciar_viaje(ruta_elegida.destino)
         
-        # 4. AGENDAR EVENTO DE LLEGADA (Aquí usamos el event manager)
         fecha_llegada = self.fecha_actual + dt.timedelta(minutes=minutos_viaje + minutos_espera)
         
         ev_llegada = Evento(
             tipo=TipoEvento.TREN_LLEGADA,
             ocurrencia=fecha_llegada,
-            handler=lambda: self.handler_llegada_tren(tren), # Cuando ocurra, ejecuta esto
+            handler=lambda: self.handler_llegada_tren(tren),
             prioridad=1
         )
         self.linea_tiempo.insertar_evento_futuro(ev_llegada)
 
     def handler_llegada_tren(self, tren):
-        """Se ejecuta cuando el tren cumple su tiempo de viaje."""
+        """Maneja la llegada verificando si hay vías disponibles."""
+        estacion_destino = tren.destino_actual
+        
+        # --- REGLA DE VÍAS (RUBRICA) ---
+        if not estacion_destino.hay_via_disponible():
+            print(f"ALERTA: Tren {tren.nombre} esperando entrada a {estacion_destino.nombre} (Vías llenas)")
+            # Re-programamos el intento de entrada para 5 minutos después
+            fecha_reintento = self.fecha_actual + dt.timedelta(minutes=5)
+            ev_reintento = Evento(
+                tipo=TipoEvento.TREN_LLEGADA,
+                ocurrencia=fecha_reintento,
+                handler=lambda: self.handler_llegada_tren(tren), # Intentar de nuevo
+                prioridad=1
+            )
+            self.linea_tiempo.insertar_evento_futuro(ev_reintento)
+            return
+
+        # Si hay vía, entramos
+        estacion_destino.ocupar_via()
         tren.finalizar_viaje()
         
-        # --- ACTUALIZACIÓN DE INDICADOR ---
         bajados = tren.bajar_pasajeros()
-        self.total_transportados += bajados # Sumamos al total histórico
+        self.total_transportados += bajados
         
-        print(f"[{self.fecha_actual.strftime('%H:%M')}] LLEGADA: {tren.nombre} -> {tren.estacion_actual.nombre}. Bajaron {bajados}.")
-        
+        # Programar siguiente salida
         self.programar_salida_tren(tren, minutos_espera=15)
-    # --- LÓGICA DE GENERACIÓN Y AVANCE (IGUAL QUE ANTES) ---
 
     def programar_generacion(self, estacion, minutos_futuro):
         fecha_evento = self.fecha_actual + dt.timedelta(minutes=minutos_futuro)
@@ -147,10 +237,3 @@ class EstadoSimulacion:
         estacion.llegar_pasajeros(nuevos)
         self.programar_generacion(estacion, minutos_futuro=20)
 
-    def avanzar_un_paso(self):
-        proximos = self.linea_tiempo.obtener_proximos(eliminar=True)
-        if not proximos:
-            return
-        nueva_fecha = self.linea_tiempo.consumir_eventos(proximos, historial=True)
-        if nueva_fecha:
-            self.fecha_actual = nueva_fecha
