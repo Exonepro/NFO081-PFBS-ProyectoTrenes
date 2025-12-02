@@ -9,10 +9,11 @@ class Estacion:
         self.poblacion = poblacion
         self.anden = deque()
         
-        # --- CORRECCIÓN: ESCALADO DE POBLACIÓN ---
-        # Usamos una "población efectiva" para la simulación.
-        # Si es Santiago (muy grande), dividimos por 200. Si es chica, por 50.
-        # Esto es un ajuste matemático necesario para que sea jugable.
+        #se cambio el factor del escalado porque al inicial la simulacion,
+        #la estacion de santiago tenia demasiada poblacion 
+        #y esta variable lo que hace es que si la poblacion es muy grande
+        # el factor es 200 y si es menor cambia a 50
+        #lo que controla un poco el crecimiento de la gente esperando
         factor_escala = 200 if poblacion > 1000000 else 50
         poblacion_simulada = int(poblacion / factor_escala)
 
@@ -22,8 +23,7 @@ class Estacion:
             fecha_inicial=fecha_inicio
         )
         
-        # --- AGREGADO PARA RUBRICA (VÍAS) ---
-        # Cada estación debe tener vías limitadas. Digamos 4 vías.
+        
         self.vias_totales = 4
         self.vias_ocupadas = 0 
     
@@ -51,16 +51,16 @@ class Estacion:
             "poblacion": self.poblacion,
             "fecha_generador": self.generador.current_datetime.isoformat(),
             "anden": [p.to_dict() for p in self.anden],
-            "vias_ocupadas": self.vias_ocupadas # Guardamos esto también
+            "vias_ocupadas": self.vias_ocupadas 
         }
-    # ... dentro de la clase Estacion ...
+    
     
     def modificar_poblacion(self, nueva_poblacion):
-        """RF05: Permite cambiar el parámetro del generador en tiempo real."""
+        
         self.poblacion = nueva_poblacion
-        # Recalculamos el factor de escala (opcional, mantener lógica anterior)
+        
         factor_escala = 200 if nueva_poblacion > 1000000 else 50
         poblacion_simulada = int(nueva_poblacion / factor_escala)
         
-        # Actualizamos el generador interno
+        
         self.generador.poblacion = poblacion_simulada

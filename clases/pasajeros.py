@@ -15,7 +15,7 @@ class Pasajero:
         if posibles:
             self.destino = rnd.choice(posibles)
 
-    # --- NUEVOS MÉTODOS PARA GUARDADO (RF08) ---
+    #guardar
     def to_dict(self):
         return {
             "id": self.id,
@@ -26,11 +26,11 @@ class Pasajero:
 
     @classmethod
     def from_dict(cls, data, mapa_estaciones):
-        """Reconstruye un pasajero desde el diccionario guardado."""
+        
         fecha = dt.datetime.fromisoformat(data["fecha_creacion"])
         p = cls(data["id"], fecha)
         
-        # Reconectar con las estaciones reales usando el mapa
+    
         if data["id_origen"]:
             p.origen = mapa_estaciones.get(data["id_origen"])
         if data["id_destino"]:

@@ -12,7 +12,7 @@ class Tren:
         self.destino_actual = None
         self.ultima_estacion = None 
 
-        # Atributos de visualización
+        # aca donde suben y bajan
         self.ultimo_subieron = 0
         self.ultimo_bajaron = 0
 
@@ -22,8 +22,7 @@ class Tren:
         self.destino_actual = estacion_destino
         self.estacion_actual = None
         
-        # CORRECCIÓN: NO borramos los contadores aquí.
-        # Dejamos que el usuario vea los números mientras el tren viaja.
+
 
     def finalizar_viaje(self):
         self.en_transito = False
@@ -43,11 +42,11 @@ class Tren:
     def bajar_pasajeros(self):
         if not self.estacion_actual: return 0
         
-        # Al llegar a una NUEVA estación, ahí sí limpiamos los datos viejos
+    
         self.ultimo_subieron = 0 
         self.ultimo_bajaron = 0
         
-        # Lógica de bajada (Terminales vs Intermedias)
+        #bajada 
         es_terminal = (self.estacion_actual.id == 1 or self.estacion_actual.id == 4)
         
         bajan = []
@@ -77,5 +76,7 @@ class Tren:
             "en_transito": self.en_transito,
             "id_estacion_actual": self.estacion_actual.id if self.estacion_actual else None,
             "id_destino_actual": self.destino_actual.id if self.destino_actual else None,
-            "pasajeros": [p.to_dict() for p in self.pasajeros]
+            "pasajeros": [p.to_dict() for p in self.pasajeros],
+            "ultimo_subieron": self.ultimo_subieron,
+            "ultimo_bajaron": self.ultimo_bajaron
         }
