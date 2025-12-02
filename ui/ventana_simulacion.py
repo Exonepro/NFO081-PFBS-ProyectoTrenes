@@ -146,5 +146,5 @@ def ventana_simu(sistema):
                             command=handler_guardar)
     btn_guardar.pack(side=tk.BOTTOM, fill=tk.X, padx=20, pady=1)
 
-    # Carga inicial de datos al abrir la ventanaa
+    # cargar inicialmente datos al abrir la ventanaa
     refrescar_pantalla()
