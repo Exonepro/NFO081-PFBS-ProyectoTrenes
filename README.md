@@ -6,10 +6,10 @@ Nuestro principal enfoque en este proyecto es la usabilidad y la experiencia del
 La simulación permite a un Operario tomar decisiones y observar el impacto de estas sobre el flujo de pasajeros y el estado del sistema en tiempo real, apoyándose en indicadores visuales y controles simples.
 
 ## 👥 Integrantes del Equipo
-* Piero Colque
+* Piero Colque (Exonepro)
 * Benjamin Alvarez
 * Sebastian Duran
-* Felipe Almonacid
+* Felipe Almonacid (Cheric)
 
 
 ##  Indicadores de Desempeño RF07
